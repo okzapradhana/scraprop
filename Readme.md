@@ -1,6 +1,6 @@
 # Goddard
 
-Web Scrapper using Python.
+Web Scrapper using Python.<br>
 Websites list to scrap (can add more later):
 1. [jendela360]
 2. [travelio]
@@ -11,8 +11,8 @@ Websites list to scrap (can add more later):
   - Thus I am trying Selenium to scrap the website.
 
 ### Notes:
-Selenium uses Chrome Driver (not Chrome Browser that we used daily). 
-Here are the link to download https://sites.google.com/a/chromium.org/chromedriver/downloads/version-selection)
+Selenium uses Chrome Driver (not Chrome Browser that we used daily).<br>
+Here are the link to download https://sites.google.com/a/chromium.org/chromedriver/downloads/version-selection
 
 Mine uses: https://chromedriver.storage.googleapis.com/index.html?path=79.0.3945.36/
 
@@ -22,13 +22,13 @@ Mine uses: https://chromedriver.storage.googleapis.com/index.html?path=79.0.3945
 Install the all libraries used on this project using command:
 
 ```sh
-> pip install requirements.txt
+(dir) pip install requirements.txt
 ```
 
 If you install some new libraries to the project, make sure to write it on `requirements.txt` by using:
 
 ```sh
-> pip freeze > requirements.txt
+(dir) pip freeze > requirements.txt
 ```
 
 

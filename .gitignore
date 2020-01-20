@@ -1,3 +1,6 @@
+#folders
+files/
+
 # Editors
 .vscode/
 .idea/
@@ -101,7 +104,6 @@ celerybeat-schedule
 *.sage.py
 
 # Environments
-.env
 .venv
 env/
 venv/

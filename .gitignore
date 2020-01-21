@@ -1,3 +1,9 @@
+#folders
+files/
+
+#for debug only
+test.py
+
 # Editors
 .vscode/
 .idea/

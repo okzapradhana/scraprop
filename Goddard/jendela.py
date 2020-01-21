@@ -68,15 +68,12 @@ def scrap():
                     driver.implicitly_wait(5)
                     modal = driver.find_elements(By.CLASS_NAME, 'modal__panel')
                     if(len(modal) > 0):
-                        print('Modal displayed!')
                         btn = driver.find_element(By.CLASS_NAME, 'helper__close__btn')
                         btn.click()
                     else:
                         print('Modal not displayed')
 
                     unit_name = unit_detail.find_element(By.CSS_SELECTOR, "div[id='units'] > h1").text
-                    print('unit name', unit_name)
-
                     bedroom = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(1)").text.strip()
                     bathroom = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(2)").text.strip()
                     condition = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(3)").text.strip()
@@ -87,7 +84,7 @@ def scrap():
                     rent_keys = ["full", "monthly"]
                     
                     dict_rent_time = {}
-                    print('Pilihan Masa Sewa', len(rent_times))
+
                     for each_rent_time in rent_times:
                         anchor_href = each_rent_time.find_element(By.CSS_SELECTOR, ".price-tab")
                         rent_month_text = each_rent_time.find_element(By.CSS_SELECTOR, ".price-tab > span").text
@@ -99,14 +96,6 @@ def scrap():
                         dict_rent_price = dict((key, price.strip()) for price, key in zip(split_slash_price, rent_keys))
                         dict_rent_months = {rent_month_text:dict_rent_price}
                         dict_rent_time.update(dict_rent_months)
-                        print('Dictionary Rent Time', dict_rent_time)
-
-                    print('bed', bedroom)
-                    print('bath', bathroom)
-                    print('cond', condition)
-                    print('area', area)
-                    print('floor', floor)
-                    print('tower', tower)
 
                     list_unit_name.append(unit_name)
                     list_bedroom.append(bedroom)
@@ -123,9 +112,6 @@ def scrap():
                     apart_facilities = unit_detail.find_elements(By.CSS_SELECTOR, "div[id='apartmentfacilities'] .facility-text")
                     list_facil_apart = [each_facil.text for each_facil in apart_facilities]
 
-                    #print('Unit facil: ', list_facil_unit)
-                    #print('Apart facil: ', list_facil_apart)
-
                     list_facilities_unit.append(list_facil_unit)
                     list_facilities_apart.append(list_facil_apart)
 
@@ -133,7 +119,6 @@ def scrap():
                     split_space_price = [ charge_text.text for charge_text in monthly_price  ]
                     split_colon_price = [ tuple(each_price.split(':')) for each_price in split_space_price ]
                     dict_price = dict((estimasi.strip(), price.strip()) for estimasi, price  in split_colon_price)
-                    print('Dictionary Price Estimation', dict_price)
 
                     list_estimation_prices.append(dict_price)
 
@@ -148,6 +133,3 @@ def scrap():
     df_home.to_csv('../files/jendela360_page1_home.csv')
 
     print('Running time: ', time.time() - start)
-
-    #pagination_length = driver.find_element(By.CSS_SELECTOR, "div[id='js-pagination'] > a:nth-last-child(2)").text
-    #print('Pagination', (pagination_length))

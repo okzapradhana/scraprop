@@ -1,6 +1,9 @@
 #folders
 files/
 
+#for debug only
+test.py
+
 # Editors
 .vscode/
 .idea/
@@ -104,6 +107,7 @@ celerybeat-schedule
 *.sage.py
 
 # Environments
+.env
 .venv
 env/
 venv/

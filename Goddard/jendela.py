@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from datetime import datetime
 from pytz import timezone
+import time
 
 
 def scrap():
@@ -20,23 +21,12 @@ def scrap():
     timeout_wait = 20
     format_time = "%Y-%m-%d %H:%M:%S"
 
-    # Home
-    list_bulan = []
-    list_unit_name = []
-    list_room = []
-    list_price = []
-    list_price_label = []
-    list_area = []
-    list_tower = []
-    list_floor = []
-    list_time_taken = []
+    list_unit_name, list_bedroom, list_bathroom, \
+    list_rent_price, list_area, list_tower, list_floor, \
+    list_time_taken, list_facilities_unit, list_facilities_apart, \
+    list_conditions, list_estimation_prices = ([] for i in range(12))
 
-    #Page Detail
-    list_facilities_unit = []
-    list_facilities_apart = []
-    list_conditions = []
-    list_estimation_prices = []
-
+    start = time.time()
     for each_page in range(5): #access 5 pages
         list_href = [] #reset every page
 
@@ -52,45 +42,11 @@ def scrap():
             print('Page successfully loaded!')
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
             results = driver.find_elements(By.CSS_SELECTOR, ".js-unit-tile")
-            #print('Result', results)
-            print(len(results))
 
             for each_unit in results:
-                bayar_bulan = each_unit.find_element_by_class_name(
-                    'monthly-label').text
-                unit_name = each_unit.find_element_by_tag_name('h5').text
-                info_room = each_unit.find_element_by_class_name(
-                    'info-room').text.strip()
-                price = each_unit.find_element_by_class_name('price').text
-                price_label = each_unit.find_element_by_class_name(
-                    'price-label').text
                 link_href = each_unit.find_element(
                     By.CSS_SELECTOR, "a[href^='https://jendela360.com']").get_attribute("href")
-                area = each_unit.find_element(
-                    By.CSS_SELECTOR, "ul[class='info-facility'] > li:nth-child(1) > span").text
-                tower = each_unit.find_element(
-                    By.CSS_SELECTOR, "ul[class='info-facility'] > li:nth-child(2) > span").text
-                floor = each_unit.find_element(
-                    By.CSS_SELECTOR, "ul[class='info-facility'] > li:nth-child(3) > span").text
-                curr_time = datetime.now(timezone('Asia/Jakarta'))
-                time_taken = curr_time.strftime(format_time)
-
-                #print('Unit name: ', unit_name)
-
-                list_bulan.append(bayar_bulan)
-                list_unit_name.append(unit_name)
-                list_room.append(info_room)
-                list_price.append(price)
-                list_price_label.append(price_label)
                 list_href.append(link_href)
-                list_area.append(area)
-                list_tower.append(tower)
-                list_floor.append(floor)
-                list_time_taken.append(time_taken)
-
-
-            # driver.back()
-            #driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
 
             for each_url in list_href:
                 print('Current url: ', each_url, '\n')
@@ -101,9 +57,13 @@ def scrap():
                 except TimeoutException:
                     print('Time out waiting page to Load')
                 finally:
+                    curr_time = datetime.now(timezone('Asia/Jakarta'))
+                    time_taken = curr_time.strftime(format_time)
+
+                    list_time_taken.append(time_taken)
+
                     unit_detail = driver.find_element(By.CSS_SELECTOR, "div[class='container']")
                     driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
-                    #print('Unit detail', unit_detail)
                     
                     driver.implicitly_wait(5)
                     modal = driver.find_elements(By.CLASS_NAME, 'modal__panel')
@@ -113,13 +73,48 @@ def scrap():
                         btn.click()
                     else:
                         print('Modal not displayed')
-                    
-                    facilities_detail = unit_detail.find_element(By.CLASS_NAME, "gridded--list")
-                    #print('Facilities detail:', facilities_detail.text)
 
+                    unit_name = unit_detail.find_element(By.CSS_SELECTOR, "div[id='units'] > h1").text
+                    print('unit name', unit_name)
+
+                    bedroom = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(1)").text.strip()
+                    bathroom = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(2)").text.strip()
                     condition = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(3)").text.strip()
-                    #print('Condition: ', condition)
+                    area = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(4)").text.strip()
+                    floor = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(5)").text.strip()
+                    tower = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(6)").text.strip()
+                    rent_times = unit_detail.find_elements(By.CSS_SELECTOR, ".price-card ul[class='price-btn-tabs'] >li")
+                    rent_keys = ["full", "monthly"]
+                    
+                    dict_rent_time = {}
+                    print('Pilihan Masa Sewa', len(rent_times))
+                    for each_rent_time in rent_times:
+                        anchor_href = each_rent_time.find_element(By.CSS_SELECTOR, ".price-tab")
+                        rent_month_text = each_rent_time.find_element(By.CSS_SELECTOR, ".price-tab > span").text
+                        anchor_href.click()
 
+                        rent_price = unit_detail.find_elements(By.CSS_SELECTOR, ".price-content .star-price")
+                        year_month_price = [ price.text.strip() for price in rent_price if price.text != '' ]
+                        split_slash_price = [ price.split('/')[0] for price in year_month_price ] #get price only
+                        dict_rent_price = dict((key, price.strip()) for price, key in zip(split_slash_price, rent_keys))
+                        dict_rent_months = {rent_month_text:dict_rent_price}
+                        dict_rent_time.update(dict_rent_months)
+                        print('Dictionary Rent Time', dict_rent_time)
+
+                    print('bed', bedroom)
+                    print('bath', bathroom)
+                    print('cond', condition)
+                    print('area', area)
+                    print('floor', floor)
+                    print('tower', tower)
+
+                    list_unit_name.append(unit_name)
+                    list_bedroom.append(bedroom)
+                    list_bathroom.append(bathroom)
+                    list_area.append(area)
+                    list_floor.append(floor)
+                    list_tower.append(tower)
+                    list_rent_price.append(dict_rent_time)
                     list_conditions.append(condition)
 
                     unit_facilities = unit_detail.find_elements(By.CSS_SELECTOR, "div[id='facility'] .facility-text")
@@ -142,29 +137,17 @@ def scrap():
 
                     list_estimation_prices.append(dict_price)
 
-                #Print List
-            print('\nList\n')
-            print('area', len(list_area))
-            #print('bulan', list_bulan)
-            #print('cond', list_conditions)
-            print('estimation prices', len(list_estimation_prices))
-            print('facil apart', len(list_facilities_apart))
-            print('facil unit', len(list_facilities_unit))
-            #print('floor', list_floor)
-            #print('href', list_href)
-            #print('price', list_price)
-            #print('room', list_room)
-            #print('time', list_time_taken)
-            print('tower', len(list_tower))
-            print('unit name', len(list_unit_name))
-
-    df_home = pd.DataFrame({'datestamp': list_time_taken, 'nama_unit': list_unit_name, 'rentang_bayar': list_bulan,
-                            'ruangan': list_room, 'harga': list_price, 'keterangan_harga': list_price_label,
+    df_home = pd.DataFrame({'datestamp': list_time_taken, 'nama_unit': list_unit_name,
+                            'kamar_tidur': list_bedroom, 'kamar_mandi': list_bathroom,
+                            'harga': list_rent_price,
                             'luas_bangunan': list_area, 'tower': list_tower, 'lantai': list_floor,
                             'condition': list_conditions, 'fasilitas_unit': list_facilities_unit,
-                            'fasilitas_apartemen': list_facilities_apart, 'estimasi_harga': list_estimation_prices})
+                            'fasilitas_apartemen': list_facilities_apart,
+                            'estimasi_harga': list_estimation_prices})
 
-    df_home.to_csv('jendela360_page1_home.csv')
+    df_home.to_csv('../files/jendela360_page1_home.csv')
+
+    print('Running time: ', time.time() - start)
 
     #pagination_length = driver.find_element(By.CSS_SELECTOR, "div[id='js-pagination'] > a:nth-last-child(2)").text
     #print('Pagination', (pagination_length))

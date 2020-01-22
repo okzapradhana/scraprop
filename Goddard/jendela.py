@@ -19,6 +19,8 @@ def scrap():
 
     timeout_wait = 20
     format_time = "%Y-%m-%d %H:%M:%S"
+    now = datetime.now()
+    now_timestamp = datetime.timestamp(now)
 
     list_unit_name, list_bedroom, list_bathroom, \
     list_rent_price, list_area, list_tower, list_floor, \
@@ -136,6 +138,6 @@ def scrap():
                             'fasilitas_apartemen': list_facilities_apart,
                             'estimasi_harga': list_estimation_prices})
 
-    df_home.to_csv('../files/jendela360_home.csv')
+    df_home.to_csv('../files/jendela_'+str(now_timestamp)+'_.csv')
 
     print('Running time: ', time.time() - start)

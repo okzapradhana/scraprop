@@ -12,14 +12,15 @@ import time
 
 
 def scrap():
-    url_string = "https://jendela360.com/search"
     # chromedriver path
     load_dotenv()
     executable_path = os.getenv('EXECUTABLE_PATH')
     driver = webdriver.Chrome(executable_path)
-    
+
     timeout_wait = 20
     format_time = "%Y-%m-%d %H:%M:%S"
+    now = datetime.now()
+    now_timestamp = datetime.timestamp(now)
 
     list_unit_name, list_bedroom, list_bathroom, \
     list_rent_price, list_area, list_tower, list_floor, \
@@ -27,11 +28,12 @@ def scrap():
     list_conditions, list_estimation_prices = ([] for i in range(12))
 
     start = time.time()
-    for each_page in range(5): #access 5 pages
-        list_href = [] #reset every page
+    curr_page = 0
 
-        print('Current page: ', (each_page+1), '\n')
-        driver.get('https://jendela360.com/search?page='+str(each_page+1))
+    while True: #access 5 pages
+        list_href = [] #reset every page
+        print('Current page: ', (curr_page+1), '\n')
+        driver.get('https://jendela360.com/search?page='+str(curr_page+1))
 
         try:
             present_element = EC.presence_of_element_located((By.CLASS_NAME, 'js-unit-tile'))
@@ -42,6 +44,8 @@ def scrap():
             print('Page successfully loaded!')
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
             results = driver.find_elements(By.CSS_SELECTOR, ".js-unit-tile")
+            pagination = driver.find_element(By.CSS_SELECTOR, "div[id='js-pagination']  a:nth-last-child(2)")
+            print('page', pagination.text)
 
             for each_unit in results:
                 link_href = each_unit.find_element(
@@ -121,6 +125,10 @@ def scrap():
                     dict_price = dict((estimasi.strip(), price.strip()) for estimasi, price  in split_colon_price)
 
                     list_estimation_prices.append(dict_price)
+            
+            curr_page+=1
+            if curr_page == int(pagination):
+                break
 
     df_home = pd.DataFrame({'datestamp': list_time_taken, 'nama_unit': list_unit_name,
                             'kamar_tidur': list_bedroom, 'kamar_mandi': list_bathroom,
@@ -130,6 +138,6 @@ def scrap():
                             'fasilitas_apartemen': list_facilities_apart,
                             'estimasi_harga': list_estimation_prices})
 
-    df_home.to_csv('../files/jendela360_page1_home.csv')
+    df_home.to_csv('../files/jendela_'+str(now_timestamp)+'_.csv')
 
     print('Running time: ', time.time() - start)

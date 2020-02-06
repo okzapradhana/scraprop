@@ -1,0 +1,116 @@
+package main
+
+import (
+	"context"
+	"io/ioutil"
+
+	"github.com/MontFerret/ferret/pkg/compiler"
+	"github.com/MontFerret/ferret/pkg/drivers"
+	"github.com/MontFerret/ferret/pkg/drivers/cdp"
+	"github.com/MontFerret/ferret/pkg/drivers/http"
+)
+
+func main() {
+	var query = `
+		LET url = "https://www.travelio.com/sewa-apartemen-jakarta"
+
+		LET travelio = DOCUMENT(url, {
+			driver: "cdp"
+		})
+		
+		/*pagination*/
+		LET itemPerPageSelector = "div#hotel-pagination > div > div#showing-hotel > span:nth-child(1)"
+		LET maxItemPageSelector = "div#hotel-pagination > div > div#showing-hotel > span:nth-child(2)"
+		LET maxItemPage = ELEMENT(travelio, maxItemPageSelector)
+		LET itemPerPage = ELEMENT(travelio, itemPerPageSelector)
+		LET splitItemPerPage  = TO_INT(SPLIT(itemPerPage.innerText, " - ")[1])
+		LET maxPages = TO_INT(maxItemPage.innerText)
+		LET pagination = ROUND(maxPages/splitItemPerPage)
+		
+		LET result = (
+			FOR pageNum IN 1..pagination
+				LIMIT 2
+				FILTER ELEMENT_EXISTS(travelio, "div.property-outer-box") == true
+		
+				LET currentPage = pageNum == 1 ? false : NAVIGATE(travelio, (url+"?page="+pageNum), 20000)
+				LET properties = ELEMENTS(travelio, ".property-box")
+		
+				LET links = (
+					FOR property IN properties
+						LET href = ELEMENT(property, "a")
+						RETURN href.attributes.href
+				)
+				LET items = (
+					FOR link IN links
+						LIMIT 2
+		
+						NAVIGATE(travelio, CONCAT("https:", link), 20000)
+						WAIT_ELEMENT(travelio, "#page-body-wrapper")
+						LET apartName = ELEMENT(travelio, "#hotel-name")
+						LET kamar = ELEMENTS(travelio, "div#page-body-left > div:nth-child(6) div.hotel-left-item-info")
+						LET property = ELEMENTS(travelio, "div#page-body-left > div:nth-child(7) > div.hotel-left-item-info-wrapper > div.hotel-left-item-info")
+						LET facilities = ELEMENTS(travelio, "div#page-body-left > div:nth-child(7) div.hotel-facility-item")
+						LET pricesLabelSelector = ELEMENTS(travelio, "ul.nav-tabs > li")
+						LET lengthPrices = LENGTH(pricesLabelSelector)
+		
+						LET pricesArray = (
+							FOR eachPrice IN 1..lengthPrices
+								CLICK(travelio, "ul.nav-tabs > li:nth-child(" + eachPrice + ")" + " > a")
+								WAIT(6000)
+								LET isPriceExist = ELEMENT(travelio, "div#room-price-detail > span.price-value").innerText == "-"
+								LET time = ELEMENT(travelio, "ul.nav-tabs > li:nth-child(" + eachPrice + ")" + " > a")
+								LET priceTotalLabel = ELEMENT(travelio, "div.price-total-name")
+								LET priceTotal = ELEMENT(travelio, "div#room-price-detail > span.price-value")
+								LET priceText = isPriceExist == false ? + "{" + time.innerText + ":{" + priceTotalLabel.innerText + ":" + priceTotal.innerText + "}}" : "{" + time.innerText + ": Kamar Sudah Tersewa" + "}"
+								RETURN priceText
+						)
+		
+						LET kamarFacility = (
+							FOR eachKmr IN kamar
+								RETURN TRIM(eachKmr.innerText)
+						)
+		
+		
+						LET propertyFacility = (
+							FOR eachProp IN property
+								RETURN TRIM(eachProp.innerText)
+						)
+		
+						LET allFacility = (
+							FOR eachFac IN facilities
+								RETURN TRIM(eachFac.innerText)
+						)
+		
+						LET info = INNER_TEXT(travelio, "div#page-body-left > div:nth-child(8)")
+		
+		
+						RETURN{
+							nama: apartName.innerText,
+							kamar: kamarFacility,
+							properti: propertyFacility,
+							fasilitas: allFacility,
+							harga: pricesArray,
+							info
+						}
+				)
+				
+		
+				RETURN items
+		)
+		
+		RETURN FLATTEN(result)
+	`
+
+	comp := compiler.New()
+	program, _ := comp.Compile(query)
+
+	ctx := context.Background()
+
+	ctx = drivers.WithContext(ctx, cdp.NewDriver())
+	ctx = drivers.WithContext(ctx, http.NewDriver(), drivers.AsDefault())
+
+	out, _ := program.Run(ctx)
+
+	ioutil.WriteFile("travelio.json", out, 0600)
+
+}

@@ -3,6 +3,11 @@ files/
 
 #for debug only
 test.py
+Goddard/bqspark.py
+Goddard/test_bigquery.py
+
+#fql ferret
+Goddard/*.fql
 
 # Editors
 .vscode/

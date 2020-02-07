@@ -1,10 +1,8 @@
-package main
+package scrap
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/MontFerret/ferret/pkg/compiler"
 	"github.com/MontFerret/ferret/pkg/drivers"
@@ -12,24 +10,14 @@ import (
 	"github.com/MontFerret/ferret/pkg/drivers/http"
 )
 
-func main() {
-	apartments, err := getApartments()
-	if err != nil {
-		fmt.Print(err)
-		os.Exit(1)
-	}
-
-	fmt.Print(apartments)
-}
-
-func getApartments() ([]byte, error) {
+func GetApartments() ([]byte, error) {
 	var path string = "../../queries/travelio.fql"
-	contentByte, err := ioutil.ReadFile(path)
+	cb, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	query := string(contentByte)
+	query := string(cb)
 
 	comp := compiler.New()
 	program, err := comp.Compile(query)
@@ -47,7 +35,10 @@ func getApartments() ([]byte, error) {
 		return nil, err
 	}
 
-	ioutil.WriteFile("travelio.json", out, 0600)
+	err = ioutil.WriteFile("travelio.json", out, 0600)
+	if err != nil {
+		return nil, err
+	}
 
 	return out, err
 }

@@ -9,6 +9,6 @@ func main(){
 	wordStringFlag := flag.String("web", "travelio", "choose website to scrap")
 
 	if(*wordStringFlag == "travelio"){
-		scrap.main()
+		scrap.GetApartments()
 	}
 }

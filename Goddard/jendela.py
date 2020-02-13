@@ -23,7 +23,7 @@ def scrap_link():
 
     timeout_wait = 20
     curr_page = 0
-    list_href = []
+    list_urls = []
     
     #access pages
     while True:
@@ -46,17 +46,17 @@ def scrap_link():
             for each_unit in results:
                 link_href = each_unit.find_element(
                     By.CSS_SELECTOR, "a[href^='https://jendela360.com']").get_attribute("href")
-                list_href.append(link_href)
+                list_urls.append(link_href)
 
             #go to next page
             curr_page+=1
             if curr_page == int(1):
                 break
     
-    return list_href
+    return list_urls
 
 @app.task
-def scrap_each_page(list_href:[]):
+def scrap_each_page(list_urls:[]):
     load_dotenv()
     executable_path = os.getenv('EXECUTABLE_PATH')
     driver = webdriver.Chrome(executable_path)
@@ -67,13 +67,13 @@ def scrap_each_page(list_href:[]):
     now = datetime.now()
     now_timestamp = datetime.timestamp(now)
 
-    list_unit_name, list_bedroom, list_bathroom, \
-    list_rent_price, list_area, list_tower, list_floor, \
+    list_unit_names, list_bedrooms, list_bathrooms, \
+    list_rent_prices, list_areas, list_towers, list_floors, \
     list_time_taken, list_facilities_unit, list_facilities_apart, \
     list_conditions, list_estimation_prices = ([] for i in range(12))
 
     #visit each page
-    for each_url in list_href:
+    for each_url in list_urls:
         print('Current url: ', each_url, '\n')
         driver.get(each_url)
         try:
@@ -105,14 +105,14 @@ def scrap_each_page(list_href:[]):
             area = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(4)").text.strip()
             floor = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(5)").text.strip()
             tower = unit_detail.find_element(By.CSS_SELECTOR, ".gridded--list li:nth-of-type(6)").text.strip()
-            rent_times = unit_detail.find_elements(By.CSS_SELECTOR, ".price-card ul[class='price-btn-tabs'] >li")
+            rent_periods = unit_detail.find_elements(By.CSS_SELECTOR, ".price-card ul[class='price-btn-tabs'] >li")
             rent_keys = ["full", "monthly"]
             
-            dict_rent_time = {}
+            dict_rent_period = {}
 
-            for each_rent_time in rent_times:
-                anchor_href = each_rent_time.find_element(By.CSS_SELECTOR, ".price-tab")
-                rent_month_text = each_rent_time.find_element(By.CSS_SELECTOR, ".price-tab > span").text
+            for rent_period in rent_periods:
+                anchor_href = rent_period.find_element(By.CSS_SELECTOR, ".price-tab")
+                rent_month_text = rent_period.find_element(By.CSS_SELECTOR, ".price-tab > span").text
                 anchor_href.click()
 
                 rent_price = unit_detail.find_elements(By.CSS_SELECTOR, ".price-content .star-price")
@@ -120,15 +120,15 @@ def scrap_each_page(list_href:[]):
                 split_slash_price = [ price.split('/')[0] for price in year_month_price ] #get price only
                 dict_rent_price = dict((key, price.strip()) for price, key in zip(split_slash_price, rent_keys))
                 dict_rent_months = {rent_month_text:dict_rent_price}
-                dict_rent_time.update(dict_rent_months)
+                dict_rent_period.update(dict_rent_months)
 
-            list_unit_name.append(unit_name)
-            list_bedroom.append(bedroom)
-            list_bathroom.append(bathroom)
-            list_area.append(area)
-            list_floor.append(floor)
-            list_tower.append(tower)
-            list_rent_price.append(dict_rent_time)
+            list_unit_names.append(unit_name)
+            list_bedrooms.append(bedroom)
+            list_bathrooms.append(bathroom)
+            list_areas.append(area)
+            list_floors.append(floor)
+            list_towers.append(tower)
+            list_rent_prices.append(dict_rent_period)
             list_conditions.append(condition)
 
             unit_facilities = unit_detail.find_elements(By.CSS_SELECTOR, "div[id='facility'] .facility-text")
@@ -148,14 +148,14 @@ def scrap_each_page(list_href:[]):
             list_estimation_prices.append(dict_price)
 
 
-    df_home = pd.DataFrame({'datestamp': list_time_taken, 'nama_unit': list_unit_name,
-                            'kamar_tidur': list_bedroom, 'kamar_mandi': list_bathroom,
-                            'harga': list_rent_price,
-                            'luas_bangunan': list_area, 'tower': list_tower, 'lantai': list_floor,
+        df_home = pd.DataFrame({'datestamp': list_time_taken, 'nama_unit': list_unit_names,
+                            'kamar_tidur': list_bedrooms, 'kamar_mandi': list_bathrooms,
+                            'harga': list_rent_prices,
+                            'luas_bangunan': list_areas, 'tower': list_towers, 'lantai': list_floors,
                             'condition': list_conditions, 'fasilitas_unit': list_facilities_unit,
                             'fasilitas_apartemen': list_facilities_apart,
                             'estimasi_harga': list_estimation_prices})
 
-    df_home.to_csv('../files/jendela_'+str(now_timestamp)+'_.csv')
+        df_home.to_csv('../files/jendela_'+str(now_timestamp)+'_.csv')
 
     print('Running time: ', time.time() - start)

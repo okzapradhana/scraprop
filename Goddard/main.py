@@ -6,8 +6,8 @@ from jendela import scrap_link, scrap_each_page
 @click.option('--web', default='jendela', help='website name to scrap')
 def scrap(web):
     if web == 'jendela':
-        list_href = scrap_link()
-        rmq = scrap_each_page.delay(list_href)
+        list_urls = scrap_link()
+        rmq = scrap_each_page.delay(list_urls)
         rmq.ready()
         rmq.get()
     elif web == 'travelio':

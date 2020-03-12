@@ -12,7 +12,7 @@ import time
 from celery import Celery
 
 app = Celery('jendela',
-            backend='rpc://',
+            backend='amqp://',
             broker='pyamqp://guest@localhost//')
 
 def scrap_link():
@@ -50,7 +50,7 @@ def scrap_link():
 
             #go to next page
             curr_page+=1
-            if curr_page == int(1):
+            if curr_page == int(5):
                 break
     
     return list_urls

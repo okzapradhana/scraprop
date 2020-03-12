@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"https://github.com/SpaceStock/Goddard/pkg/scrap"
+	"github.com/SpaceStock/Goddard/pkg/scrap"
 )
 
 func main(){

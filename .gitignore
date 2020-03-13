@@ -5,6 +5,7 @@ files/
 test.py
 Goddard/bqspark.py
 Goddard/test_bigquery.py
+travelio.json
 
 #fql ferret
 Goddard/*.fql

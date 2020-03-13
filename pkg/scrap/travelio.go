@@ -11,7 +11,7 @@ import (
 )
 
 func GetApartments() ([]byte, error) {
-	var path string = "../../queries/travelio.fql"
+	var path string = "queries/travelio.fql"
 	cb, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err

@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.options import Options
 from datetime import datetime
 from pytz import timezone
 import time
@@ -15,11 +16,14 @@ app = Celery('jendela',
             backend='amqp://',
             broker='pyamqp://guest@localhost//')
 
+chrome_options = Options()
+chrome_options.add_argument("--headless")
+
 def scrap_link():
     # chromedriver path
     load_dotenv()
     executable_path = os.getenv('EXECUTABLE_PATH')
-    driver = webdriver.Chrome(executable_path)
+    driver = webdriver.Chrome(executable_path, options=chrome_options)
 
     timeout_wait = 20
     curr_page = 0
@@ -59,7 +63,7 @@ def scrap_link():
 def scrap_each_page(url):
     load_dotenv()
     executable_path = os.getenv('EXECUTABLE_PATH')
-    driver = webdriver.Chrome(executable_path)
+    driver = webdriver.Chrome(executable_path, options=chrome_options)
 
     start = time.time()
     timeout_wait = 20

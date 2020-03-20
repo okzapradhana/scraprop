@@ -15,8 +15,6 @@ Websites list to scrap (can add more later):
 
 Selenium uses Chrome Driver (not Chrome Browser that we used daily).<br>
 
-Here are the link to download https://sites.google.com/a/chromium.org/chromedriver/downloads/version-selection
-
 ### Installation
 ##### Goddard is using Python and Go.
 The differences is explained below.
@@ -38,11 +36,14 @@ Or you may check [gopath] tutorial for details.
 1. `src`
 2. `bin`
 3. `pkg`
-- From any directory, pull the repository using this `go` command
+- Add this variable `GIT_TERMINAL_PROMPT=1` to `~/.bashrc` or `~/.profile`. It allows you to pull from private repo to your machine.
+- Then pull the repository using this `go` command from any directory
 ```sh
 $ go get github.com/SpaceStock/Goddard
 ```
-After pulled the repo using `go get`. Follows guide below to install anything needs by `python`. First of all, let's call our project which located on `$GOPATH/src/github.com/SpaceStock/Goddard` with `project` directory.
+After pulled the repo using `go get`. Follows guide below to install anything needs by `python`. 
+
+First of all, let's call our project which located on `$GOPATH/src/github.com/SpaceStock/Goddard` with `project` directory.
 - Install `python3-venv` first (in case you didn't have yet)
 
 ```sh
@@ -63,11 +64,20 @@ project$ source venv/bin/activate
 ```sh
 (venv) project$ pip install -r requirements.txt
 ```
+If `MemoryError` arises, install the packages using.
+```sh
+(venv) project$ pip install -r requirements.txt --no-cache-dir
+```
 - If you install some new libraries to the project, make sure to write it on `requirements.txt` by using:
 
 ```sh
 project$ pip freeze > requirements.txt
 ```
+
+## Install Google Chrome and Chrome Driver
+As <b>notes</b> said, Selenium is using Chrome Driver which needs Google Chrome Browser. This steps will explain you how to install them.
+1. First install `google-chrome`, you may check how to install [chrome] tutorial.
+2. Install chrome driver, you may refer to [chrome driver] tutorial.
 ### License
 ---
 MIT
@@ -79,3 +89,5 @@ MIT
 [ferret]: <https://github.com/MontFerret/ferret>
 [golang]: <https://dasarpemrogramangolang.novalagung.com/2-instalasi-golang.html>
 [gopath]: <https://dasarpemrogramangolang.novalagung.com/3-gopath-dan-workspace.html>
+[chrome]: <https://linuxize.com/post/how-to-install-google-chrome-web-browser-on-ubuntu-18-04/>
+[chrome driver]: <https://sites.google.com/a/chromium.org/chromedriver/downloads/version-selection>

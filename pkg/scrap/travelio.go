@@ -3,7 +3,7 @@ package scrap
 import (
 	"context"
 	"io/ioutil"
-
+	"fmt"
 	"github.com/MontFerret/ferret/pkg/compiler"
 	"github.com/MontFerret/ferret/pkg/drivers"
 	"github.com/MontFerret/ferret/pkg/drivers/cdp"
@@ -24,6 +24,7 @@ func GetApartments() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("Err compile", err)
 
 	ctx := context.Background()
 
@@ -34,11 +35,13 @@ func GetApartments() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("Err Run program using driver", err)
 
 	err = ioutil.WriteFile("travelio.json", out, 0600)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("Err write file", err)
 
 	return out, err
 }

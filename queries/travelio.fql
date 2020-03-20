@@ -15,12 +15,14 @@ LET pagination = ROUND(maxPages/splitItemPerPage)
 
 LET result = (
     FOR pageNum IN 1..pagination
-        LIMIT 2
+        PRINT("Curr page", pageNum)
+        /*LIMIT 2*/
         FILTER ELEMENT_EXISTS(travelio, "div.property-outer-box") == true
 
-        LET currentPage = pageNum == 1 ? false : NAVIGATE(travelio, (url+"?page="+pageNum), 20000)
+        LET currentPage = pageNum == 1 ? true : NAVIGATE(travelio, (url+"?page="+pageNum), 20000)
         LET properties = ELEMENTS(travelio, ".property-box")
-
+        PRINT("is Curr Page == 1?", currentPage)
+        PRINT("aparts", LENGTH(properties))
         LET links = (
             FOR property IN properties
                 LET href = ELEMENT(property, "a")
@@ -28,7 +30,8 @@ LET result = (
         )
         LET items = (
             FOR link IN links
-                LIMIT 2
+                /*LIMIT 2*/
+                PRINT("Curr link", link)
 
                 NAVIGATE(travelio, CONCAT("https:", link), 20000)
                 WAIT_ELEMENT(travelio, "#page-body-wrapper")
@@ -41,13 +44,41 @@ LET result = (
 
                 LET pricesArray = (
                     FOR eachPrice IN 1..lengthPrices
-                        CLICK(travelio, "ul.nav-tabs > li:nth-child(" + eachPrice + ")" + " > a")
-                        WAIT(6000)
-                        LET isPriceExist = ELEMENT(travelio, "div#room-price-detail > span.price-value").innerText == "-"
+                        LET tabPriceSelector = "ul.nav-tabs > li:nth-child(" + eachPrice + ")" + " > a"
+                        LET tabPrice = ELEMENT(travelio, tabPriceSelector)
+                        CLICK(travelio, tabPriceSelector)
+                        PRINT("Tab price: ", tabPrice.innerText)
+                        WAIT(10000)
+
+                        LET isPriceNotExist = ELEMENT(travelio, "div#room-price-detail > span.price-value").innerText == "-"
+                        PRINT("is price not exist?", isPriceNotExist)
                         LET time = ELEMENT(travelio, "ul.nav-tabs > li:nth-child(" + eachPrice + ")" + " > a")
-                        LET priceTotalLabel = ELEMENT(travelio, "div.price-total-name")
+                        /*
+                            Check total price, 
+                            It returns the total price with any condition, although the bedroom has been
+                            rent by someone (the price is -). It checks many conditions.
+
+                            Conditions:
+                            If current tab == "Tahunan" and the price is not exist,
+                                It will return "Kamar Sudah Tersewa"
+                            If current tab == "Tahunan" but the price is exist, 
+                                Click the dropdown to choose payment options. 
+                                Then the total price will exist.
+                            If current tab is not "Tahunan" (means "Harian" or "Bulanan") and the price is not exist. 
+                                It will return "Kamar Sudah Tersewa"
+                            If current tab is not "Tahunan" but the price is exist,
+                                Get the Total Price directly.
+                        */
+                        LET isTahun = tabPrice.innerText == "Tahunan"
+                        PRINT("is current Tab = Tahunan?",  isTahun)
+                        LET clickDropdown = isTahun == true ? (isPriceNotExist == true ? '-' : CLICK(travelio, "select#installment-yearly")) : "No Dropdown"
+                        PRINT("Dropdown?", clickDropdown)
+                        LET choosePayment = clickDropdown != "No Dropdown" ? CLICK(travelio, "select#installment-yearly > option:nth-child(2)") : "No Payment"
+                        LET priceTahun =  choosePayment != "No Payment" ? ELEMENT(travelio, "div.price-total-name").innerText : "No Price Tahun"
+                        LET priceExceptTahun = isTahun == false && isPriceNotExist == true ? '-' : ELEMENT(travelio, "div.price-total-name").innerText
+                        LET priceTotalLabel = isTahun == true ? priceTahun : priceExceptTahun 
                         LET priceTotal = ELEMENT(travelio, "div#room-price-detail > span.price-value")
-                        LET priceText = isPriceExist == false ? + "{" + time.innerText + ":{" + priceTotalLabel.innerText + ":" + priceTotal.innerText + "}}" : "{" + time.innerText + ": Kamar Sudah Tersewa" + "}"
+                        LET priceText = isPriceNotExist == false ? + "{" + time.innerText + ":{" + priceTotalLabel + ":" + priceTotal.innerText + "}}" : "{" + time.innerText + ": Kamar Sudah Tersewa" + "}"
                         RETURN priceText
                 )
 

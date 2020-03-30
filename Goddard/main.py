@@ -11,7 +11,8 @@ def scrap(web):
         rmq = group(scrap_each_page.s(url) for url in list_urls)
         result = rmq.apply_async()
     elif web == 'travelio':
-        travelio.scrap()
+        links = travelio.scrap_href()
+        travelio.scrap(links)
 
 
 if __name__ == "__main__":

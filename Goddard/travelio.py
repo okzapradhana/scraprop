@@ -8,13 +8,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.select import Select
 from datetime import datetime
 from pytz import timezone
+
+chrome_options = Options()
+chrome_options.add_argument("--headless")
 
 def scrap(links: []):
     load_dotenv()
     executable_path = os.getenv('EXECUTABLE_PATH')
-    driver = webdriver.Chrome(executable_path)
+    driver = webdriver.Chrome(executable_path, options=chrome_options)
     timeout_wait = 20
     now = datetime.now()
     now_timestamp = datetime.timestamp(now)
@@ -32,7 +37,7 @@ def scrap(links: []):
         except TimeoutException:
             print('Time out waiting price')
         finally:
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+            #driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
             price_tabs = driver.find_elements(By.CSS_SELECTOR, "ul.nav-tabs > li")
             len_price_tabs = len(price_tabs)
             apartments_dict = {}
@@ -47,7 +52,7 @@ def scrap(links: []):
                     label = tab_element.text
                 price_labels.append(label)
                 print("Current tab: ", label)
-                tab_element.click()
+                driver.execute_script("arguments[0].click()", tab_element)
                 timeout_tab = 8
 
                 #wait for prices to be clickable after click the Tab
@@ -68,19 +73,38 @@ def scrap(links: []):
 
                         #check dropdown a.k.a select options
                         if is_element_exist('CSS_SELECTOR', 'div.select-wrapper > select', driver):
-                            print("Options nya ada")
-                            options = driver.find_elements(By.CSS_SELECTOR, 'select.search-input > option')
-                            for option in options:
-                                if option.text == 'Bayar Penuh':
-                                    option.click()
-                                    try:
-                                        overlay_element_present = EC.presence_of_element_located((By.ID, 'controller-box-overlay'))
-                                        WebDriverWait(driver, timeout_tab).until_not(overlay_element_present)
-                                    except:
-                                        print('Time out waiting price')
-                                    finally:
-                                        print("Waiting success!")
-                                    break
+                            print("Options nya ada!")
+                            if label == "Bulanan":
+                                options = driver.find_elements(By.CSS_SELECTOR, 'div.change-room-rates-col > select#months > option')
+                                print("Options bulanan: ", options, len(options))
+                                for option in options:
+                                    if option.text == "1 bulan":
+                                        print("CLICK option 1 bulan")
+                                        option.click()
+#                                        driver.execute_script("arguments[0].click()", option)
+                                        try:
+                                            overlay_element_present = EC.presence_of_element_located((By.ID, 'controller-box-overlay'))
+                                            WebDriverWait(driver, timeout_tab).until_not(overlay_element_present)
+                                        except:
+                                            print('Time out waiting price')
+                                        finally:
+                                            print("Waiting success!")
+                                        break
+                            else:
+                                print("Bukan bulanan!")
+                                options = driver.find_elements(By.CSS_SELECTOR, 'select.search-input > option')
+                                for option in options:
+                                    if option.text == 'Bayar Penuh':
+                                        #driver.execute_script("arguments[0].click()", option)
+                                        option.click()
+                                        try:
+                                            overlay_element_present = EC.presence_of_element_located((By.ID, 'controller-box-overlay'))
+                                            WebDriverWait(driver, timeout_tab).until_not(overlay_element_present)
+                                        except:
+                                            print('Time out waiting price')
+                                        finally:
+                                            print("Waiting success!")
+                                        break
                         total_price_el = driver.find_element(By.CSS_SELECTOR, 'div.price-total-price') 
                         text = total_price_el.text
                     prices.append(text)
@@ -161,7 +185,8 @@ def scrap(links: []):
 def scrap_href():
     load_dotenv()
     executable_path = os.getenv('EXECUTABLE_PATH')
-    driver = webdriver.Chrome(executable_path)
+    driver = webdriver.Chrome(executable_path, options=chrome_options)
+    driver.set_window_size(1440, 900)
     curr_page = 1
     links = []
     

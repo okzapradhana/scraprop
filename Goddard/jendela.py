@@ -30,6 +30,7 @@ def scrap_link():
     timeout_wait = 20
     curr_page = 0
     list_urls = []
+    max_page = 0
     
     #access pages
     while True:
@@ -55,8 +56,12 @@ def scrap_link():
                 print('Modal not displayed')
 
             results = driver.find_elements(By.CSS_SELECTOR, ".js-unit-tile")
-            pagination = driver.find_element(By.CSS_SELECTOR, "div[id='js-pagination']  a:nth-last-child(2)")
-            print('page', pagination.text)
+
+            #executes once
+            if curr_page == 1:
+                pagination = driver.find_element(By.CSS_SELECTOR, "div[id='js-pagination']  a:nth-last-child(2)")
+                print('page', pagination.text)
+                max_page = pagination.text
 
             # get urls of unit details page in current pagination
             for each_unit in results:
@@ -65,9 +70,9 @@ def scrap_link():
                 list_urls.append(link_href)
 
             #go to next page
-            curr_page+=1
-            if curr_page == int(pagination.text):
+            if curr_page == int(max_page):
                 break
+            curr_page+=1
     
     return list_urls
 

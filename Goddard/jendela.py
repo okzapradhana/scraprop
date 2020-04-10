@@ -1,5 +1,7 @@
 import pandas as pd
 import os
+import time
+import pandas_gbq
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -9,7 +11,6 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
 from datetime import datetime
 from pytz import timezone
-import time
 from celery import Celery
 
 app = Celery('jendela',
@@ -24,6 +25,7 @@ def scrap_link():
     load_dotenv()
     executable_path = os.getenv('EXECUTABLE_PATH')
     driver = webdriver.Chrome(executable_path, options=chrome_options)
+    driver.set_window_size(1440, 900)
 
     timeout_wait = 20
     curr_page = 0
@@ -42,6 +44,16 @@ def scrap_link():
         finally:
             print('Page successfully loaded!')
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+            driver.implicitly_wait(5)
+            
+            #waits for modal appear
+            modal = driver.find_elements(By.CLASS_NAME, 'modal__panel')
+            if(len(modal) > 0):
+                btn = driver.find_element(By.CLASS_NAME, 'helper__close__btn')
+                btn.click()
+            else:
+                print('Modal not displayed')
+
             results = driver.find_elements(By.CSS_SELECTOR, ".js-unit-tile")
             pagination = driver.find_element(By.CSS_SELECTOR, "div[id='js-pagination']  a:nth-last-child(2)")
             print('page', pagination.text)
@@ -54,7 +66,7 @@ def scrap_link():
 
             #go to next page
             curr_page+=1
-            if curr_page == int(5):
+            if curr_page == int(pagination.text):
                 break
     
     return list_urls
@@ -64,6 +76,7 @@ def scrap_each_page(url):
     load_dotenv()
     executable_path = os.getenv('EXECUTABLE_PATH')
     driver = webdriver.Chrome(executable_path, options=chrome_options)
+    driver.set_window_size(1440, 900)
 
     start = time.time()
     timeout_wait = 20
@@ -160,5 +173,7 @@ def scrap_each_page(url):
                         'estimasi_harga': list_estimation_prices})
 
         df_home.to_csv('../files/jendela_'+str(now_timestamp)+'_.csv')
+        pandas_gbq.to_gbq(df_home, os.getenv("JENDELA_TABLE_NAME"),
+                        os.getenv("PROJECT_ID"), if_exists="replace")
 
     print('Running time: ', time.time() - start)

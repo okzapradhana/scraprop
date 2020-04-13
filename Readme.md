@@ -7,8 +7,9 @@ Welcome to <b>Readme</b>! Which is the first thing you will see when visiting th
 
 ### Overview
 <b>Goddard</b> is a Repo to do scrapping on several websites such as.
-1. [Travelio]
-2. [Jendela]
+1. [Jendela360]
+2. [Travelio]
+3. [Rumah123]
 
 ### Project Structure
 <b>Goddard</b> was developed with this project structure:
@@ -52,6 +53,8 @@ To run your program successfully. You need to do quick install in which the step
 
   
 
-[Jendela]: <https://jendela360.com>
+[Jendela360]: <https://jendela360.com>
 
 [Travelio]: <https://www.travelio.com/>
+
+[Rumah123]: <https://www.rumah123.com>

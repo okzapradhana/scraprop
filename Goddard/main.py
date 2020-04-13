@@ -1,19 +1,30 @@
 import click
 import travelio
-from jendela import scrap_link, scrap_each_page
+import rumah
+import jendela
 from celery import group
 
 @click.command()
 @click.option('--web', default='jendela', help='website name to scrap')
 def scrap(web):
     if web == 'jendela':
-        list_urls = scrap_link()
-        rmq = group(scrap_each_page.s(url) for url in list_urls)
+        '''
+        if using celery
+        list_urls = jendela.scrap_link()
+        rmq = group(jendela.scrap_each_page.s(url) for url in list_urls)
         result = rmq.apply_async()
+        '''
+
+        #not using celery
+        links = jendela.scrap_link()
+        jendela.scrap_each_page(links)
     elif web == 'travelio':
         links = travelio.scrap_href()
         travelio.scrap(links)
-
+    elif web == 'rumah123':
+        regions = rumah.scrap_region()
+        properties = rumah.scrap_properties(regions)
+        rumah.scrap(properties)
 
 if __name__ == "__main__":
     scrap()

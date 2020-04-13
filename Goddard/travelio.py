@@ -177,7 +177,7 @@ def scrap(links: []):
 
             apartments.append(apartments_dict)
 
-    with open('apartments_{}.json'.format(now_timestamp), 'w') as file:
+    with open('travelio_{}.json'.format(now_timestamp), 'w') as file:
         json.dump(apartments, file)
         print("success write file")
 
@@ -207,7 +207,7 @@ def scrap_href():
         curr_page+=1
 
         print("Links length: ", len(links), '\n')
-        if curr_page == pagination:
+        if curr_page == 2:
             break
         driver.get('https://www.travelio.com/sewa-apartemen-jakarta/jakarta-pusat?page={}'.format(curr_page))
 

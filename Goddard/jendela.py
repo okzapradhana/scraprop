@@ -13,10 +13,10 @@ from datetime import datetime
 from pytz import timezone
 from celery import Celery
 
-app = Celery('jendela',
+'''app = Celery('jendela',
             backend='amqp://',
             broker='pyamqp://guest@localhost//')
-
+'''
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
@@ -70,7 +70,7 @@ def scrap_link():
                 list_urls.append(link_href)
 
             #go to next page
-            if curr_page == int(max_page):
+            if curr_page == int(2):
                 break
             curr_page+=1
     
@@ -169,16 +169,16 @@ def scrap_each_page(urls):
             list_estimation_prices.append(dict_price)
 
 
-            df_home = pd.DataFrame({'datestamp': list_time_taken, 'nama_unit': list_unit_names,
-                            'kamar_tidur': list_bedrooms, 'kamar_mandi': list_bathrooms,
-                            'harga': list_rent_prices,
-                            'luas_bangunan': list_areas, 'tower': list_towers, 'lantai': list_floors,
-                            'condition': list_conditions, 'fasilitas_unit': list_facilities_unit,
-                            'fasilitas_apartemen': list_facilities_apart,
-                            'estimasi_harga': list_estimation_prices})
+        df_home = pd.DataFrame({'datestamp': list_time_taken, 'nama_unit': list_unit_names,
+                        'kamar_tidur': list_bedrooms, 'kamar_mandi': list_bathrooms,
+                        'harga': list_rent_prices,
+                        'luas_bangunan': list_areas, 'tower': list_towers, 'lantai': list_floors,
+                        'condition': list_conditions, 'fasilitas_unit': list_facilities_unit,
+                        'fasilitas_apartemen': list_facilities_apart,
+                        'estimasi_harga': list_estimation_prices})
 
-        df_home.to_csv('../files/jendela_'+str(now_timestamp)+'_.csv')
-        pandas_gbq.to_gbq(df_home, os.getenv("JENDELA_TABLE_NAME"),
-                        os.getenv("PROJECT_ID"), if_exists="replace")
+    df_home.to_csv('../files/jendela_'+str(now_timestamp)+'_.csv')
+    pandas_gbq.to_gbq(df_home, os.getenv("JENDELA_TABLE_NAME"),
+                    os.getenv("PROJECT_ID"), if_exists="replace")
 
     print('Running time: ', time.time() - start)

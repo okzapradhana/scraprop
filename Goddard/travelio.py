@@ -177,7 +177,7 @@ def scrap(links: []):
 
             apartments.append(apartments_dict)
 
-    with open('travelio_{}.json'.format(now_timestamp), 'w') as file:
+    with open('../files/travelio_{}.json'.format(now_timestamp), 'w') as file:
         json.dump(apartments, file)
         print("success write file")
 

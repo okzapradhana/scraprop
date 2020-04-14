@@ -82,6 +82,8 @@ def scrap(properties):
     driver = webdriver.Chrome(executable_path)
     now = datetime.now()
     now_timestamp = datetime.timestamp(now)
+    properties_info = []
+
 
     for prop in properties:
         driver.get(prop)
@@ -101,7 +103,6 @@ def scrap(properties):
         address = address_el.text
 
         property_tabs = driver.find_elements(By.CSS_SELECTOR, 'div.ant-tabs-nav-wrap')
-        properties_info = []
 
         print("Title: ", title)
         print("Desc: ", desc)
